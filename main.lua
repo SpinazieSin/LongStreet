@@ -36,20 +36,20 @@ function love.load()
     -- h = screen height
     -- w = screen width
     h = 512
-    w = 512
+    w = 600
 
     -- unused
-    texwidth = 100
-    texheight = 100
+    texwidth = 512
+    texheight = 512
 
     -- set gamescreen
-    fullscreen = false
+    fullscreen = true
     success = love.window.setMode( w, h, {fullscreen=fullscreen} )
 
     -- load canvas and images
     canvas = love.graphics.newCanvas(w, h)
     canvas = canvas:newImageData()
-    imagedata = love.image.newImageData("example.png")
+    imagedata = love.image.newImageData("brick.jpg")
 end
  
 -- Increase the size of the rectangle every frame.
@@ -90,11 +90,11 @@ end
 function love.draw()
 
   love.graphics.clear()
+  if fullscreen then
+    love.graphics.scale(2, 2)
+  end
   local cnvs = draw3d()
   local screentodraw = love.graphics.newImage(cnvs)
-  if fullscreen then
-    love.graphics.scale(2.5, 2.5)
-  end
   love.graphics.draw(screentodraw)
   collectgarbage('collect')
 end
@@ -169,7 +169,7 @@ function draw3d()
     drawstart = 0
    end
    drawend = lineheight / 2 + h / 2
-   if drawend >= h then
+   if drawend > h then
     drawend = h - 1
    end
 
@@ -193,6 +193,7 @@ function draw3d()
     if (side == 1 and raydiry < 0) then
       texx = texwidth - texx - 1
     end
+    texx = texx + 0.5
 
     -- How much to increase the texture coordinate per screen pixel
     step = 1.0 * texheight / lineheight
@@ -215,10 +216,13 @@ function draw3d()
         --if (side == 1) color = (color >> 1) & 8355711
       end
     end
+    -- x = imagedata:gg()
 
     -- DRAWBUFFER
     if not(fullscreen) then
-     love.graphics.line(x, drawstart, x, drawend)
+     -- love.graphics.line(x, 0, x, drawstart)
+     -- love.graphics.line(x, drawstart, x, drawend)
+     -- love.graphics.line(x, drawend, x, h)
     end
   end
  end
