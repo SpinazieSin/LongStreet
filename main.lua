@@ -27,25 +27,29 @@ map = {
 
 -- Load some default values for our rectangle.
 function love.load()
+    -- player variables
     posx, posy = 22, 12
     dirx, diry = -1, 0
     planex, planey = 0, 0.66
     movespeed, rotspeed = 0.01, 0.01
     
-    h = 600
-    w = 800
+    -- h = screen height
+    -- w = screen width
+    h = 512
+    w = 512
 
-    canvas = love.graphics.newCanvas(800, 600)
-
-
-    image = love.graphics.newImage("wolftex/wood.png")
+    -- unused
     texwidth = 100
     texheight = 100
-    -- canvas = love.graphics.getCanvas( )
-    -- data = canvas:getImageData()
-    -- print(canvas)
-    -- print(image)
-    -- print(data)
+
+    -- set gamescreen
+    fullscreen = false
+    success = love.window.setMode( w, h, {fullscreen=fullscreen} )
+
+    -- load canvas and images
+    canvas = love.graphics.newCanvas(w, h)
+    canvas = canvas:newImageData()
+    imagedata = love.image.newImageData("example.png")
 end
  
 -- Increase the size of the rectangle every frame.
@@ -84,19 +88,21 @@ function love.update(dt)
 end
 
 function love.draw()
-    love.graphics.setColor(0, 0.4, 0.4)
-    -- love.graphics.rectangle("line", holdx, holdy, mx-holdx, my-holdy)
 
-    love.graphics.clear()
-    love.graphics.setCanvas()
-    love.graphics.draw(canvas)
-    draw3d()
+  love.graphics.clear()
+  local cnvs = draw3d()
+  local screentodraw = love.graphics.newImage(cnvs)
+  if fullscreen then
+    love.graphics.scale(2.5, 2.5)
+  end
+  love.graphics.draw(screentodraw)
+  collectgarbage('collect')
 end
 
 function draw3d()
+ local cnvs = canvas:clone()
+
  for x=0,w do
-  -- w = w * 2
-  -- x = x * 2 + rnd(2)
   camerax = (2 * x) / w - 1
   
   raydirx = dirx + planex * camerax
@@ -131,6 +137,7 @@ function draw3d()
   end
 
   wallcolor = 8
+  count = 0
   while not(wallhit) do
    if sidedistx < sidedisty then
     sidedistx = sidedistx + deltadistx
@@ -141,11 +148,12 @@ function draw3d()
     mapy = mapy + stepy
     side = 1
    end
-   if map[mapx][mapy] > 0 then
+   if map[mapx][mapy] > 0 or count > 50 then
     wallhit = true
     wallcolor = map[mapx][mapy]
     break
    end
+   count = count + 1
   end
   
   if wallhit then
@@ -189,22 +197,30 @@ function draw3d()
     -- How much to increase the texture coordinate per screen pixel
     step = 1.0 * texheight / lineheight
     -- Starting texture coordinate
-    texpos = (drawstart - h / 2 + lineheight / 2) * step
-    for y=drawstart,drawend do
-      -- Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
-      texy = texpos
-      texpos = texpos + step
+    texpos = (drawstart - h / 2 + lineheight / 2) * step + 1
+    local imageheight = imagedata:getHeight()
+    local imagewidth = imagedata:getWidth()
+    if texx > 0 and x < w then
+      for y=drawstart,drawend do
+        -- Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
+        texy = texpos
+        if texx > imagewidth or texy > imageheight then
+          break
+        end
+        texpos = texpos + step
 
-      -- color = texture[texNum][texHeight * texY + texX]
-      --make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
-      --if (side == 1) color = (color >> 1) & 8355711
-      -- buffer[y][x] = color
+        local r, g, b, a = imagedata:getPixel(texx, texy)
+        cnvs:setPixel(x, y, r, g, b, a)
+        --make color darker for y-sides: R, G and B byte each divided through two with a "shift" and an "and"
+        --if (side == 1) color = (color >> 1) & 8355711
+      end
     end
 
     -- DRAWBUFFER
-
-   -- love.graphics.rectangle("fill", x, drawstart, 2, drawend-x)
-   love.graphics.line(x, drawstart, x, drawend)
+    if not(fullscreen) then
+     love.graphics.line(x, drawstart, x, drawend)
+    end
   end
  end
+ return cnvs
 end
