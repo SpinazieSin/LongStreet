@@ -125,7 +125,7 @@ function draw3d()
 
     local fade = 1
     if darkness then
-      fade = perpwalldist*perpwalldist/4
+      fade = darkness_scale*perpwalldist*perpwalldist/4
     end
 
     if texx > 1 and x < w then
@@ -162,4 +162,70 @@ function draw3d()
   end
  end
  return cnvs
+end
+
+
+function drawsprites(number)
+
+  local sprite = sprites[number]
+  if spritehits[sprite.x] ~= nil and spritehits[sprite.x][sprite.y] ~= nil then
+
+  local spritex = sprite.x - posx + 0.5
+  local spritey = sprite.y - posy + 0.5
+  
+  local dist = math.sqrt((spritex^2) + (spritey^2))
+  if dist > 10 then
+    return
+  end
+
+  local localspritedata = spritesheet[sprite.spriteimage]:clone()
+
+    --transform sprite with the inverse camera matrix
+    -- [ planeX   dirX ] -1                                       [ dirY      -dirX ]
+    -- [               ]       =  1/(planeX*dirY-dirX*planeY) *   [                 ]
+    -- [ planeY   dirY ]                                          [ -planeY  planeX ]
+
+  local invdet = 1.0 / (planex * diry - dirx * planey) --required for correct matrix multiplication
+
+  local transformx = invdet * (diry * spritex - dirx * spritey)
+  local transformy = invdet * (-planey * spritex + planex * spritey)--this is actually the depth inside the screen, that what Z is in 3D
+
+  -- sprite is behind player
+  if transformy < 0 then
+    return
+  end
+
+  local spritescreenx = math.floor((w / 2) * (1 + transformx / transformy))
+  if spritescreenx < 0-localspritedata:getWidth() or spritescreenx > w+localspritedata:getWidth() then
+    return
+  end
+
+  --calculate height of the sprite on screen
+  local spriteheight = math.floor(h / transformy) --using 'transformY' instead of the real distance prevents fisheye
+  
+  --calculate lowest and highest pixel to fill in current stripe
+  local drawstarty = -spriteheight / 2 + h / 2
+  local drawendy = spriteheight / 2 + h / 2
+
+  --calculate width of the sprite
+  local spritewidth = math.abs( math.floor(h / (transformy)))
+  local drawstartx = -spritewidth / 2 + spritescreenx
+  if (drawstartx < 0) then
+    drawstartx = 0
+  end
+  local drawendx = spritewidth / 2 + spritescreenx
+  if (drawendx >= w) then
+    drawendx = w - 1
+  end
+
+  local fade = 1
+  if darkness then
+    fade = dist*2*darkness_scale
+  end
+
+  localspritedata:mapPixel(function(x, y, r, g, b, a) return r/fade, g/fade, b/fade, a end)
+  local spriteimage = spriteims[sprite.spriteimage]
+  spriteimage:replacePixels(localspritedata)
+  love.graphics.draw(spriteimage, spritescreenx + sprite.xoffset, h/2 + sprite.yoffset/dist, 0, sprite.scale/dist)
+  end
 end

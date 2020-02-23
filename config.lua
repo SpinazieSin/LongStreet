@@ -9,6 +9,9 @@ function load_variables()
     -- turn the lights off
     darkness = true
 
+    -- amount of darkness
+    darkness_scale = 1
+
     -- h = screen height
     -- w = screen width
     h = 256
