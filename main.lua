@@ -17,6 +17,25 @@ map = {
   {1,1,1,1,1,1,1,1,1,1}
 }
 
+windowmap = {
+  {0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0},
+  {0,0,0,0,1,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0}
+}
+
 map2 = {
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -80,6 +99,10 @@ function love.load()
     walls = {
       love.image.newImageData("assets/walls/Bricks-2.jpg"),
       love.image.newImageData("assets/example.png")
+    }
+
+    windows = {
+      love.image.newImageData("assets/decorations/window-1.png")
     }
 
     spritesheet = {
@@ -167,15 +190,7 @@ function love.draw()
   -- love.graphics.rectangle("fill", screenw, 0, w-screenw, h )
 
   if firstrun then
-    for number=1,#sprites do
-      local sprite = sprites[number]
-      local localspritedata = spritesheet[sprite.spriteimage]:clone()
-      localspritedata:mapPixel(function(x, y, r, g, b, a) return r, g, b, a end)
-      local spriteimage = spriteims[sprite.spriteimage]
-      spriteimage:replacePixels(localspritedata)
-      love.graphics.draw(spriteimage, 0, 0, 0, sprite.scale)
-    end
-    love.graphics.rectangle("fill", 0, 0, screenw, h)
+    drawfirstrun()
   end
 
   collectgarbage('collect')
@@ -282,6 +297,7 @@ function draw3d()
   end
 
   local wallnumber = 0
+  local windownumber = 0
   local count = 0
   while not(wallhit) do
    if sidedistx < sidedisty then
@@ -298,6 +314,7 @@ function draw3d()
    if mapval > 0 and mapval < 9 then
     wallhit = true
     wallnumber = map[mapx][mapy]
+    windownumber = windowmap[mapx][mapy]
     break
    elseif mapval == 9 then
     spritehits[mapx] = {}
@@ -354,6 +371,13 @@ function draw3d()
       texx = texwidth - texx - 1
     end
 
+    local windowsprite = 0
+    local windowdraw = false
+    if texx > 40 and windownumber > 0 then
+      windowsprite = windows[windownumber]:clone()
+      windowdraw = true
+    end
+
     -- How much to increase the texture coordinate per screen pixel
     local step = 1.0 * texheight / lineheight
     -- Starting texture coordinate
@@ -361,6 +385,7 @@ function draw3d()
     local fade = perpwalldist*perpwalldist/4
     if texx > 0 and x < w then
       for y=drawstart,drawend do
+
         -- Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
         local texy = texpos
         texpos = texpos + step
@@ -368,8 +393,22 @@ function draw3d()
           break
         end
 
+        if windowdraw and texy < 41 and texy > 200 then
+          windowdraw = false
+        end
+
         local r, g, b, a = wallsprite:getPixel(texx, texy)
         cnvs:setPixel(x, y, r, g, b, a/fade)
+
+        if windowdraw then
+          -- print(windowsprite)
+          -- print(windowsprite.getHeight())
+          -- print(windowsprite.getWidth())
+          -- print(texx)
+          -- print(texy)
+          -- local r, g, b, a = windowsprite:getPixel(texx-40, texy-40)
+          -- cnvs:setPixel(x, y, r, g, b, a/fade)
+        end
       end
     end
     -- DRAWBUFFER
@@ -379,4 +418,19 @@ function draw3d()
   end
  end
  return cnvs
+end
+
+function drawfirstrun()
+  for number=1,#walls do
+    local wallsprite = walls[number]:clone()
+  end
+  for number=1,#sprites do
+    local sprite = sprites[number]
+    local localspritedata = spritesheet[sprite.spriteimage]:clone()
+    localspritedata:mapPixel(function(x, y, r, g, b, a) return r, g, b, a end)
+    local spriteimage = spriteims[sprite.spriteimage]
+    spriteimage:replacePixels(localspritedata)
+    love.graphics.draw(spriteimage, 0, 0, 0, sprite.scale)
+  end
+  love.graphics.rectangle("fill", 0, 0, screenw, h)
 end
