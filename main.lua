@@ -86,7 +86,7 @@ function love.load()
     texheight = 512
 
     -- set gamescreen
-    fullscreen = true
+    fullscreen = false
     success = love.window.setMode( screenw, h, {fullscreen=fullscreen} )
 
     -- load canvas
@@ -96,10 +96,12 @@ function love.load()
  
 
     -- load images
-    walls = {
+    wallimages = {
       love.image.newImageData("assets/walls/Bricks-2.jpg"),
       love.image.newImageData("assets/example.png")
     }
+
+    walls = {}
 
     windows = {
       love.image.newImageData("assets/decorations/window-1.png")
@@ -173,25 +175,24 @@ end
 
 function love.draw()
   love.graphics.clear()
+
+  if firstrun then
+    drawfirstrun()
+  end
+
   if fullscreen then
     love.graphics.scale(4, 4)
   end
 
-  love.graphics.print("posx: "..posx, 0, 0)
-  love.graphics.print("posy: "..posy, 0, 10)
-
   local cnvs = draw3d()
   local screentodraw = love.graphics.newImage(cnvs)
-  love.graphics.draw(screentodraw, 80)
+  love.graphics.draw(screentodraw)
   cnvs = drawsprites(1)
 
   -- love.graphics.setColor(255,0,0)
 
   -- love.graphics.rectangle("fill", screenw, 0, w-screenw, h )
 
-  if firstrun then
-    drawfirstrun()
-  end
 
   collectgarbage('collect')
   firstrun = false
@@ -254,7 +255,7 @@ function drawsprites(number)
   localspritedata:mapPixel(function(x, y, r, g, b, a) return r/fade, g/fade, b/fade, a end)
   local spriteimage = spriteims[sprite.spriteimage]
   spriteimage:replacePixels(localspritedata)
-  love.graphics.draw(spriteimage, spritescreenx + sprite.xoffset + 80, h/2 + sprite.yoffset/dist, 0, sprite.scale/dist)
+  love.graphics.draw(spriteimage, spritescreenx + sprite.xoffset, h/2 + sprite.yoffset/dist, 0, sprite.scale/dist)
 
   end
 end
@@ -329,9 +330,9 @@ function draw3d()
   end
   
   if wallhit then
-   local wallsprite = walls[wallnumber]:clone()
-   local imageheight = wallsprite:getHeight()-1
-   local imagewidth = wallsprite:getWidth()-1
+   local wallsprite = walls[wallnumber]
+   local imageheight = #wallsprite
+   local imagewidth = #wallsprite[1]
    local perpwalldist = 0
    
    if side == 0 then
@@ -381,9 +382,9 @@ function draw3d()
     -- How much to increase the texture coordinate per screen pixel
     local step = 1.0 * texheight / lineheight
     -- Starting texture coordinate
-    local texpos = (drawstart - h / 2 + lineheight / 2) * step + 1
+    local texpos = (drawstart - h / 2 + lineheight / 2) * step + 1.1
     local fade = perpwalldist*perpwalldist/4
-    if texx > 0 and x < w then
+    if texx > 1 and x < w then
       for y=drawstart,drawend do
 
         -- Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
@@ -397,15 +398,14 @@ function draw3d()
           windowdraw = false
         end
 
-        local r, g, b, a = wallsprite:getPixel(texx, texy)
-        cnvs:setPixel(x, y, r, g, b, a/fade)
+        local rgba = wallsprite[math.floor(texx)][math.floor(texy)]
+        cnvs:setPixel(x, y, rgba[1], rgba[2], rgba[3], rgba[4]/fade)
 
         if windowdraw then
-          -- print(windowsprite)
-          -- print(windowsprite.getHeight())
-          -- print(windowsprite.getWidth())
-          -- print(texx)
-          -- print(texy)
+          -- love.graphics.print(windowsprite.getHeight().." - a", 0, 10)
+          -- love.graphics.print(windowsprite.getWidth().." - a", 0, 20)
+          -- love.graphics.print(texx.." - a", 0, 30)
+          -- love.graphics.print(texy.." - a", 0, 40)
           -- local r, g, b, a = windowsprite:getPixel(texx-40, texy-40)
           -- cnvs:setPixel(x, y, r, g, b, a/fade)
         end
@@ -421,8 +421,17 @@ function draw3d()
 end
 
 function drawfirstrun()
-  for number=1,#walls do
-    local wallsprite = walls[number]:clone()
+  for number=1,#wallimages do
+    local wallimage = wallimages[number]:clone()
+    local wallsprite = {}
+    for wallx=1,wallimage:getWidth()-1 do
+      table.insert(wallsprite, {})
+      for wally=1,wallimage:getHeight()-1 do
+        local r, g, b, a = wallimage:getPixel(wallx, wally)
+        wallsprite[wallx][wally] = {r, g, b, a}
+      end
+    end
+    table.insert(walls, wallsprite)
   end
   for number=1,#sprites do
     local sprite = sprites[number]
