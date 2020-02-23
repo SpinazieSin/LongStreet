@@ -1,6 +1,7 @@
 
 function load_variables()
-    -- player location
+    -- player location on the map
+    -- x is height and y is width because of some stupid warping 
     posx, posy = 7.5, 12.5
 
     -- player speed
