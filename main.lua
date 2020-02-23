@@ -20,18 +20,29 @@ function love.load()
 
     walls = {}
 
-    windows = {
+    windowimages = {
       love.image.newImageData("assets/decorations/window-1.png"),
       love.image.newImageData("assets/decorations/window-2.png")
     }
 
+    windowpos = {
+      {xoffset = 100, yoffset = 200, image = 1},
+      {xoffset = 200, yoffset = 58, image = 2},
+      {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 1},
+      {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 2},
+      {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 1},
+      {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 2}
+    }
+
+    windows = {}
+
     spritesheet = {
-      love.image.newImageData("assets/people/doompig.png"),
+      love.image.newImageData("assets/lantern_pole.png"),
       love.image.newImageData("assets/example.png")
     }
 
     sprites = {
-      {x = 2, y = 9, spriteimage = 1, xoffset = 0, yoffset = -30, scale = 0.25}
+      {x = 5, y = 5, spriteimage = 1, xoffset = 0, yoffset = -300, scale = 1}
     }
 
     spriteims = {
@@ -98,7 +109,7 @@ function love.draw()
   end
 
   if fullscreen then
-    love.graphics.scale(4, 4)
+    love.graphics.scale(scale)
   end
 
   local cnvs = draw3d()
@@ -115,6 +126,7 @@ function love.draw()
 end
 
 function drawfirstrun()
+  -- love.graphics.setColor(0, 0, 0)
   local rotspeed = 3.141
   olddirx = dirx
   dirx = dirx * math.cos(rotspeed) - diry * math.sin(rotspeed)
@@ -135,6 +147,22 @@ function drawfirstrun()
     end
     table.insert(walls, wallsprite)
   end
+
+  for number=1,#windowpos do
+    local window = windowimages[windowpos[number].image]:clone()
+    windowpos[number].width = window:getWidth()-1 
+    windowpos[number].height = window:getHeight()-1
+    local windowsprite = {}
+    for wallx=1,window:getWidth()-1 do
+      table.insert(windowsprite, {})
+      for wally=1,window:getHeight()-1 do
+        local r, g, b, a = window:getPixel(wallx, wally)
+        windowsprite[wallx][wally] = {r, g, b, a}
+      end
+    end
+    table.insert(windows, windowsprite)
+  end
+
   for number=1,#sprites do
     local sprite = sprites[number]
     local localspritedata = spritesheet[sprite.spriteimage]:clone()

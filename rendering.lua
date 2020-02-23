@@ -111,11 +111,17 @@ function draw3d()
       texx = texwidth - texx - 1
     end
 
-    local windowsprite = 0
+    local windowsprite, windowheight, windowwidth, windowx, windowy = 0
     local windowdraw = false
-    if texx > 40 and windownumber > 0 then
-      windowsprite = windows[windownumber]:clone()
-      windowdraw = true
+    if windownumber > 0 then
+      windowx = windowpos[windownumber].xoffset
+      windowwidth = windowpos[windownumber].width + windowx
+      if texx > windowx and texx < windowwidth then
+        windowy = windowpos[windownumber].yoffset + 1
+        windowsprite = windows[windowpos[windownumber].image]
+        windowheight = windowpos[windownumber].height + windowy
+        windowdraw = true
+      end
     end
 
     -- How much to increase the texture coordinate per screen pixel
@@ -128,24 +134,25 @@ function draw3d()
       fade = darkness_scale*perpwalldist*perpwalldist/4
     end
 
+    texx = math.floor(texx)
     if texx > 1 and x < w then
       for y=drawstart,drawend do
 
         -- Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
-        local texy = texpos
+        local texy = math.floor(texpos)
         texpos = texpos + step
         if texx > imagewidth or texy > imageheight then
           break
         end
 
-        if windowdraw and texy < 41 and texy > 200 then
-          windowdraw = false
-        end
-
-        local rgba = wallsprite[math.floor(texx)][math.floor(texy)]
+        local rgba = wallsprite[texx][texy]
         cnvs:setPixel(x, y, rgba[1], rgba[2], rgba[3], rgba[4]/fade)
 
         if windowdraw then
+          if texy > windowy and texy < windowheight then
+            local rgba = windowsprite[texx - windowx + 1][texy-windowy]
+            cnvs:setPixel(x, y, rgba[1], rgba[2], rgba[3], rgba[4]/fade)
+          end
           -- love.graphics.print(windowsprite.getHeight().." - a", 0, 10)
           -- love.graphics.print(windowsprite.getWidth().." - a", 0, 20)
           -- love.graphics.print(texx.." - a", 0, 30)

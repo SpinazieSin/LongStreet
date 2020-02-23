@@ -5,7 +5,7 @@ function load_variables()
     posx, posy = 7.5, 12.5
 
     -- player speed
-    movespeed, rotspeed = 2, 2
+    movespeed, rotspeed = 3, 3
     
     -- turn the lights off
     darkness = true
@@ -36,4 +36,5 @@ function load_variables()
 
     -- set gamescreen
     fullscreen = true
+    scale = 4
 end
