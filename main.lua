@@ -1,29 +1,11 @@
 require("map")
+require("rendering")
+require("config")
 
 -- Load some default values for our rectangle.
 function love.load()
-    -- player variables
-    posx, posy = 9, 3
-    dirx, diry = -1, 0
-    planex, planey = 0, 0.66
-    movespeed, rotspeed = 2, 2
-    
-    -- turn the lights on
-    light = false
+    load_variables()
 
-    -- h = screen height
-    -- w = screen width
-    h = 256
-    w = 300
-    screenw = 300
-    screenh = h
-    
-    -- texture size 
-    texwidth = 512
-    texheight = 512
-
-    -- set gamescreen
-    fullscreen = false
     success = love.window.setMode( screenw, h, {fullscreen=fullscreen} )
 
     -- load canvas
@@ -31,7 +13,6 @@ function love.load()
     canvas:setFilter("nearest", "nearest")
     canvas = canvas:newImageData()
  
-
     -- load images
     wallimages = {
       love.image.newImageData("assets/walls/Bricks-2.jpg"),
@@ -56,7 +37,6 @@ function love.load()
     spriteims = {
       love.graphics.newImage(spritesheet[1])
     }
-
 
     for i=1,#sprites do
       map[sprites[i].x][sprites[i].y] = 9
@@ -127,10 +107,9 @@ function love.draw()
   cnvs = drawsprites(1)
 
   -- love.graphics.setColor(255,0,0)
-
   -- love.graphics.rectangle("fill", screenw, 0, w-screenw, h )
-
-
+  
+  -- I REALLY WANT TO REMOVE THIS
   collectgarbage('collect')
   firstrun = false
 end
@@ -188,176 +167,27 @@ function drawsprites(number)
     drawendx = w - 1
   end
 
-  local fade = dist*2
+  local fade = 1
+  if darkness then
+    fade = dist*2
+  end
+
   localspritedata:mapPixel(function(x, y, r, g, b, a) return r/fade, g/fade, b/fade, a end)
   local spriteimage = spriteims[sprite.spriteimage]
   spriteimage:replacePixels(localspritedata)
   love.graphics.draw(spriteimage, spritescreenx + sprite.xoffset, h/2 + sprite.yoffset/dist, 0, sprite.scale/dist)
-
   end
-end
-
-function draw3d()
- local cnvs = canvas:clone()
-
- for x=0,w do
-  local camerax = (2 * x) / w - 1
-  
-  local raydirx = dirx + planex * camerax
-  local raydiry = diry + planey * camerax
-
-  local mapx = math.floor(posx)
-  local mapy = math.floor(posy)
-
-  local deltadistx = math.abs(1 / raydirx)
-  local deltadisty = math.abs(1 / raydiry)
-
-  -- step direction
-  local stepx = 0
-  local stepy = 0
-
-  local wallhit = false
-  local side = 0
-
-  if raydirx < 0 then
-   stepx = -1
-   sidedistx = (posx - mapx) * deltadistx
-  else
-   stepx = 1
-   sidedistx = (mapx + 1 - posx) * deltadistx
-  end
-  if raydiry < 0 then
-   stepy = -1
-   sidedisty = (posy - mapy) * deltadisty
-  else
-   stepy = 1
-   sidedisty = (mapy + 1 - posy) * deltadisty
-  end
-
-  local wallnumber = 0
-  local windownumber = 0
-  local count = 0
-  while not(wallhit) do
-   if sidedistx < sidedisty then
-    sidedistx = sidedistx + deltadistx
-    mapx = mapx + stepx
-    side = 0
-   else
-    sidedisty = sidedisty + deltadisty
-    mapy = mapy + stepy
-    side = 1
-   end
-   
-   local mapval = map[mapx][mapy]
-   if mapval > 0 and mapval < 9 then
-    wallhit = true
-    wallnumber = map[mapx][mapy]
-    windownumber = windowmap[mapx][mapy]
-    break
-   elseif mapval == 9 then
-    spritehits[mapx] = {}
-    spritehits[mapx][mapy] = true
-   end
-   
-   if count > 15 then
-    wallhit = false
-    break
-   end
-   count = count + 1
-  end
-  
-  if wallhit then
-   local wallsprite = walls[wallnumber]
-   local imageheight = #wallsprite
-   local imagewidth = #wallsprite[1]
-   local perpwalldist = 0
-   
-   if side == 0 then
-    perpwalldist = (mapx - posx + (1 - stepx) / 2) / raydirx
-   else
-    perpwalldist = (mapy - posy + (1 - stepy) / 2) / raydiry
-   end
-
-   local lineheight = (h / perpwalldist)
-   local drawstart = -lineheight / 2 + h / 2
-   if drawstart < 0 then
-    drawstart = 0
-   end
-   drawend = lineheight / 2 + h / 2
-   if drawend > h then
-    drawend = h - 1
-   end
-
-    --texturing calculations
-    -- texNum = worldMap[mapX][mapY] - 1 --1 subtracted from it so that texture 0 can be used!
-
-    --calculate value of wallX
-    local wallx = 0 --where exactly the wall was hit
-    if (side == 0) then
-      wallx = posy + perpwalldist * raydiry
-    else
-      wallx = posx + perpwalldist * raydirx
-    end
-    wallx = wallx - math.floor(wallx)
-
-    --x coordinate on the texture
-    local texx = wallx * texwidth
-    if (side == 0 and raydirx > 0) then
-      texx = texwidth - texx - 1
-    end
-    if (side == 1 and raydiry < 0) then
-      texx = texwidth - texx - 1
-    end
-
-    local windowsprite = 0
-    local windowdraw = false
-    if texx > 40 and windownumber > 0 then
-      windowsprite = windows[windownumber]:clone()
-      windowdraw = true
-    end
-
-    -- How much to increase the texture coordinate per screen pixel
-    local step = 1.0 * texheight / lineheight
-    -- Starting texture coordinate
-    local texpos = (drawstart - h / 2 + lineheight / 2) * step + 1.1
-    local fade = perpwalldist*perpwalldist/4
-    if texx > 1 and x < w then
-      for y=drawstart,drawend do
-
-        -- Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
-        local texy = texpos
-        texpos = texpos + step
-        if texx > imagewidth or texy > imageheight then
-          break
-        end
-
-        if windowdraw and texy < 41 and texy > 200 then
-          windowdraw = false
-        end
-
-        local rgba = wallsprite[math.floor(texx)][math.floor(texy)]
-        cnvs:setPixel(x, y, rgba[1], rgba[2], rgba[3], rgba[4]/fade)
-
-        if windowdraw then
-          -- love.graphics.print(windowsprite.getHeight().." - a", 0, 10)
-          -- love.graphics.print(windowsprite.getWidth().." - a", 0, 20)
-          -- love.graphics.print(texx.." - a", 0, 30)
-          -- love.graphics.print(texy.." - a", 0, 40)
-          -- local r, g, b, a = windowsprite:getPixel(texx-40, texy-40)
-          -- cnvs:setPixel(x, y, r, g, b, a/fade)
-        end
-      end
-    end
-    -- DRAWBUFFER
-    -- love.graphics.line(x, 0, x, drawstart)
-    -- love.graphics.line(x, drawstart, x, drawend)
-    -- love.graphics.line(x+80, drawend, x+80, h)
-  end
- end
- return cnvs
 end
 
 function drawfirstrun()
+  local rotspeed = 3.141
+  olddirx = dirx
+  dirx = dirx * math.cos(rotspeed) - diry * math.sin(rotspeed)
+  diry = olddirx * math.sin(rotspeed) + diry * math.cos(rotspeed)
+  oldplanex = planex
+  planex = planex * math.cos(rotspeed) - planey * math.sin(rotspeed)
+  planey = oldplanex * math.sin(rotspeed) + planey * math.cos(rotspeed)
+
   for number=1,#wallimages do
     local wallimage = wallimages[number]:clone()
     local wallsprite = {}
