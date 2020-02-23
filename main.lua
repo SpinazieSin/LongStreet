@@ -1,4 +1,23 @@
 map = {
+  {1,1,1,1,1,1,1,1,1,1},
+  {1,0,0,0,1,0,1,0,0,1},
+  {1,0,0,0,1,0,1,0,0,1},
+  {1,0,0,0,1,0,1,0,0,1},
+  {1,0,0,0,1,0,1,0,0,1},
+  {1,0,0,0,1,0,1,0,0,1},
+  {1,0,0,0,1,0,1,0,0,1},
+  {1,0,0,0,1,0,1,0,0,1},
+  {1,0,0,0,1,0,1,0,0,1},
+  {1,0,0,0,1,0,1,0,0,1},
+  {1,0,0,0,1,0,1,0,0,1},
+  {1,0,0,0,1,0,1,0,0,1},
+  {1,0,0,0,1,0,1,0,0,1},
+  {1,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,1},
+  {1,1,1,1,1,1,1,1,1,1}
+}
+
+map2 = {
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -28,7 +47,7 @@ map = {
 -- Load some default values for our rectangle.
 function love.load()
     -- player variables
-    posx, posy = 22, 12
+    posx, posy = 9, 3
     dirx, diry = -1, 0
     planex, planey = 0, 0.66
     movespeed, rotspeed = 2, 2
@@ -42,9 +61,10 @@ function love.load()
     w = 300
     screenw = 300
     screenh = h
-    -- unused
-    texwidth = 300
-    texheight = 300
+    
+    -- texture size 
+    texwidth = 512
+    texheight = 512
 
     -- set gamescreen
     fullscreen = true
@@ -58,27 +78,35 @@ function love.load()
 
     -- load images
     walls = {
-      love.image.newImageData("brick.jpg"),
-      love.image.newImageData("example.png")
+      love.image.newImageData("assets/walls/Bricks-2.jpg"),
+      love.image.newImageData("assets/example.png")
     }
 
     spritesheet = {
-      love.image.newImageData("doompig.png")
+      love.image.newImageData("assets/people/doompig.png"),
+      love.image.newImageData("assets/example.png")
+    }
+
+    sprites = {
+      {x = 2, y = 9, spriteimage = 1, xoffset = 0, yoffset = -30, scale = 0.25}
     }
 
     spriteims = {
       love.graphics.newImage(spritesheet[1])
     }
 
-    sprites = {
-      {x = 20, y = 11, spriteimage = 1, xoffset = 0, yoffset = -30, scale = 0.25}
-    }
 
     for i=1,#sprites do
       map[sprites[i].x][sprites[i].y] = 9
     end
 
+    for i=1,#sprites do
+      local loadsprite = spritesheet[sprites[i].spriteimage]:clone()
+    end
+
     spritehits = {{}}
+
+    firstrun = true
 end
  
 -- Increase the size of the rectangle every frame.
@@ -138,18 +166,26 @@ function love.draw()
 
   -- love.graphics.rectangle("fill", screenw, 0, w-screenw, h )
 
+  if firstrun then
+    for number=1,#sprites do
+      local sprite = sprites[number]
+      local localspritedata = spritesheet[sprite.spriteimage]:clone()
+      localspritedata:mapPixel(function(x, y, r, g, b, a) return r, g, b, a end)
+      local spriteimage = spriteims[sprite.spriteimage]
+      spriteimage:replacePixels(localspritedata)
+      love.graphics.draw(spriteimage, 0, 0, 0, sprite.scale)
+    end
+    love.graphics.rectangle("fill", 0, 0, screenw, h)
+  end
+
   collectgarbage('collect')
+  firstrun = false
 end
 
 function drawsprites(number)
 
   local sprite = sprites[number]
-  if spritehits[sprite.x] == nil then
-    return
-  end
-  if spritehits[sprite.x][sprite.y] == nil then
-    return
-  end
+  if spritehits[sprite.x] ~= nil and spritehits[sprite.x][sprite.y] ~= nil then
 
   local spritex = sprite.x - posx + 0.5
   local spritey = sprite.y - posy + 0.5
@@ -205,6 +241,7 @@ function drawsprites(number)
   spriteimage:replacePixels(localspritedata)
   love.graphics.draw(spriteimage, spritescreenx + sprite.xoffset + 80, h/2 + sprite.yoffset/dist, 0, sprite.scale/dist)
 
+  end
 end
 
 function draw3d()
