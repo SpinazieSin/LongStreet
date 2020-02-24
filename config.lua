@@ -15,9 +15,9 @@ function load_variables()
 
     -- h = screen height
     -- w = screen width
-    h = 256
-    w = 256
-    screenw = 256
+    h = 270
+    w = 270*2
+    screenw = w
     screenh = h
     
     -- default texture size 
@@ -32,10 +32,10 @@ function load_variables()
     diry = 0
 
     -- plane warping
-    planex, planey = 0, 0.5
+    planex, planey = 0, 1.2
 
     -- set gamescreen
     fullscreen = true
-    xscale = 4
-    yscale = 4
+    xscale = 3.5--*(16/9)
+    yscale = 3
 end

@@ -114,13 +114,16 @@ function draw3d()
     local windowsprite, windowheight, windowwidth, windowx, windowy = 0
     local windowdraw = false
     if windownumber > 0 then
-      windowx = windowpos[windownumber].xoffset
-      windowwidth = windowpos[windownumber].width + windowx
-      if texx > windowx and texx < windowwidth then
-        windowy = windowpos[windownumber].yoffset + 1
-        windowsprite = windows[windowpos[windownumber].image]
-        windowheight = windowpos[windownumber].height + windowy
-        windowdraw = true
+      local window = windowpos[windownumber]
+      if window.side == side or window.side == -1 then
+        windowx = window.xoffset
+        windowwidth = window.width + windowx
+        if texx > windowx and texx < windowwidth then
+          windowy = window.yoffset + 1
+          windowsprite = windows[window.image]
+          windowheight = window.height + windowy
+          windowdraw = true
+        end
       end
     end
 

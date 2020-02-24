@@ -1,4 +1,6 @@
-require("map")
+require("maps.world")
+require("maps.windows")
+require("maps.floor")
 require("rendering")
 require("config")
 
@@ -26,16 +28,24 @@ function love.load()
 
     windowimages = {
       love.image.newImageData("assets/decorations/window-1.png"),
-      love.image.newImageData("assets/decorations/window-2.png")
+      love.image.newImageData("assets/decorations/window-2.png"),
+      love.image.newImageData("assets/decorations/Airco.png")
     }
 
+    -- arguments:
+    -- xoffset is offset on wallsprite in x direction
+    -- yoffset is offset on wallsprite in x direction
+    -- image is the imagenumber from windowimages table
+    -- side = -1, shows window on all sides of the sprite
+    -- side = 1 shows it on the x
     windowpos = {
-      {xoffset = 100, yoffset = 200, image = 1},
-      {xoffset = 200, yoffset = 58, image = 2},
-      {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 1},
-      {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 2},
-      {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 1},
-      {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 2}
+      {xoffset = 100, yoffset = 200, image = 1, side = 1},
+      {xoffset = 200, yoffset = 58, image = 2, side = 1},
+      {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 1, side = -1},
+      {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 2, side = -1},
+      {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 1, side = -1},
+      {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 2, side = -1},
+      {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 3, side = -1},
     }
 
     windows = {}
@@ -91,6 +101,12 @@ function love.update(dt)
   rotateright(-rotspeed)
  end
 
+ if love.keyboard.isDown("q") then
+  rotateleft(rotspeed)
+ elseif love.keyboard.isDown("e") then
+  rotateright(rotspeed)
+ end
+
  if mousedx > 0.01 then
   rotateright(mousedx/5 * dt)
  elseif mousedx < 0.01 then
@@ -111,7 +127,7 @@ function love.draw()
 
   local cnvs = draw3d()
   local screentodraw = love.graphics.newImage(cnvs)
-  love.graphics.draw(screentodraw)
+  love.graphics.draw(screentodraw, 0, h/6)
   cnvs = drawsprites(1)
 
   love.graphics.print(planey, 0, 1)
