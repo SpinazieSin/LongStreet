@@ -36,8 +36,8 @@ function load_variables()
     
     --Record the screen dimensions
     success = love.window.setMode( 0, 0, {fullscreen=true} )
-    local screen_width = love.graphics.getWidth()
-    local screen_height = love.graphics.getHeight()
+    screen_width = love.graphics.getWidth()
+    screen_height = love.graphics.getHeight()
 
     -- set fullscreen scaling
     yscale = (screen_height/h)
@@ -51,11 +51,6 @@ function load_variables()
 end
 
 function reloadscreen()
-    --Record the screen dimensions
-    success = love.window.setMode( 0, 0, {fullscreen=true} )
-    local screen_width = love.graphics.getWidth()
-    local screen_height = love.graphics.getHeight()
-
     -- set fullscreen scaling
     yscale = (screen_height/h)
     xscale = screen_width/w

@@ -129,6 +129,16 @@ function love.update(dt)
   reloadscreen()
   planex, planey = 0, xscale/yscale
  elseif love.keyboard.isDown("7") then
+  h = 128
+  w = h*2
+  reloadscreen()
+  planex, planey = 0, xscale/yscale
+ elseif love.keyboard.isDown("6") then
+  h = 56
+  w = h*2
+  reloadscreen()
+  planex, planey = 0, xscale/yscale
+ elseif love.keyboard.isDown("5") then
   planex, planey = 0, xscale/yscale
   local fieldofview = 100
   dirx = -100/fieldofview
