@@ -166,7 +166,7 @@ function draw3d()
     -- DRAWBUFFER
     -- love.graphics.line(x, 0, x, drawstart)
     -- love.graphics.line(x, drawstart, x, drawend)
-    -- love.graphics.line(x+80, drawend, x+80, h)
+    -- love.graphics.line(x, drawend, x, h)
   end
  end
  return cnvs
@@ -234,6 +234,6 @@ function drawsprites(number)
   localspritedata:mapPixel(function(x, y, r, g, b, a) return r/fade, g/fade, b/fade, a end)
   local spriteimage = spriteims[sprite.spriteimage]
   spriteimage:replacePixels(localspritedata)
-  love.graphics.draw(spriteimage, spritescreenx + sprite.xoffset, h/2 + sprite.yoffset/dist, 0, sprite.scale/dist)
+  love.graphics.draw(spriteimage, spritescreenx + sprite.xoffset, h/2 + sprite.yoffset/dist + canvas_y_offset, 0, sprite.scale/dist)
   end
 end

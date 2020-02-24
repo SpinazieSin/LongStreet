@@ -15,8 +15,8 @@ function load_variables()
 
     -- h = screen height
     -- w = screen width
-    h = 270
-    w = 270*2
+    h = 256
+    w = h*2
     screenw = w
     screenh = h
     
@@ -31,11 +31,42 @@ function load_variables()
     -- don't touch
     diry = 0
 
-    -- plane warping
-    planex, planey = 0, 1.2
-
     -- set gamescreen
     fullscreen = true
-    xscale = 3.5--*(16/9)
-    yscale = 3
+    
+    --Record the screen dimensions
+    success = love.window.setMode( 0, 0, {fullscreen=true} )
+    local screen_width = love.graphics.getWidth()
+    local screen_height = love.graphics.getHeight()
+
+    -- set fullscreen scaling
+    yscale = (screen_height/h)
+    xscale = screen_width/w
+
+    -- plane warping
+    planex, planey = 0, xscale/yscale
+
+    -- canvas offsets
+    canvas_y_offset = 0--(screen_height/6)*(h/screen_height)--h/(screen_height/h)
+end
+
+function reloadscreen()
+    --Record the screen dimensions
+    success = love.window.setMode( 0, 0, {fullscreen=true} )
+    local screen_width = love.graphics.getWidth()
+    local screen_height = love.graphics.getHeight()
+
+    -- set fullscreen scaling
+    yscale = (screen_height/h)
+    xscale = screen_width/w
+
+    planex, planey = 0, xscale/yscale
+    canvas_y_offset = 0--(screen_height/6)*(h/screen_height)--h/(screen_height/h)
+    local fieldofview = 100
+    -- dirx = -100/fieldofview
+    -- diry = 0
+    -- load canvas
+    canvas = love.graphics.newCanvas(w, h)
+    canvas:setFilter("nearest", "nearest")
+    canvas = canvas:newImageData()
 end

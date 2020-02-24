@@ -1,7 +1,7 @@
 require("maps.world")
 require("maps.windows")
 require("maps.floor")
-require("rendering")
+require("rendering.rendering")
 require("config")
 
 function love.load()
@@ -112,6 +112,28 @@ function love.update(dt)
  elseif mousedx < 0.01 then
   rotateright(mousedx/5 * dt)
  end
+
+ if love.keyboard.isDown("0") then
+  h = 1920/2
+  w = h*2
+  reloadscreen()
+  planex, planey = 0, xscale/yscale
+ elseif love.keyboard.isDown("9") then
+  h = 512
+  w = h*2
+  reloadscreen()
+  planex, planey = 0, xscale/yscale
+ elseif love.keyboard.isDown("8") then
+  h = 256
+  w = h*2
+  reloadscreen()
+  planex, planey = 0, xscale/yscale
+ elseif love.keyboard.isDown("7") then
+  planex, planey = 0, xscale/yscale
+  local fieldofview = 100
+  dirx = -100/fieldofview
+  diry = 0  
+ end
 end
 
 function love.draw()
@@ -127,7 +149,7 @@ function love.draw()
 
   local cnvs = draw3d()
   local screentodraw = love.graphics.newImage(cnvs)
-  love.graphics.draw(screentodraw, 0, h/6)
+  love.graphics.draw(screentodraw, 0, canvas_y_offset)
   cnvs = drawsprites(1)
 
   love.graphics.print(planey, 0, 1)
