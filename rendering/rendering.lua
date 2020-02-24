@@ -179,8 +179,14 @@ function drawsprites(number)
 
   local spritex = sprite.x - posx + 0.5
   local spritey = sprite.y - posy + 0.5
-  
+
+  local invdet = 1.0 / (planex * diry - dirx * planey) --required for correct matrix multiplication
+
+  local transformx = invdet * (diry * spritex - dirx * spritey)
+  local transformy = invdet * (-planey * spritex + planex * spritey)--this is actually the depth inside the screen, that what Z is in 3D
   local dist = math.sqrt((spritex^2) + (spritey^2))
+
+
   if dist > 10 then
     return
   end
@@ -233,6 +239,6 @@ function drawsprites(number)
   localspritedata:mapPixel(function(x, y, r, g, b, a) return r/fade, g/fade, b/fade, a end)
   local spriteimage = spriteims[sprite.spriteimage]
   spriteimage:replacePixels(localspritedata)
-  love.graphics.draw(spriteimage, spritescreenx + sprite.xoffset, h/2 + sprite.yoffset/dist + canvas_y_offset, 0, sprite.scale/dist)
+  love.graphics.draw(spriteimage, spritescreenx + sprite.xoffset, h/2 + sprite.yoffset/transformy + canvas_y_offset, 0, sprite.scale/transformy)
   end
 end
