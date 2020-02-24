@@ -5,6 +5,10 @@ require("config")
 function love.load()
     load_variables()
 
+    love.mouse.setRelativeMode( true )
+
+    mousedx = 0
+
     success = love.window.setMode( screenw, h, {fullscreen=fullscreen} )
 
     -- load canvas
@@ -66,38 +70,31 @@ end
 function love.update(dt)
  spritehits = {{}}
 
- local movespeed = movespeed * dt
- local rotspeed = rotspeed * dt
+ local movespeed = runspeed * dt
+ local rotspeed = turnspeed * dt
+
  if love.keyboard.isDown("w") then
-  if map[math.floor(posx + dirx * movespeed)][math.floor(posy)] < 1 then
-   posx = posx + dirx * movespeed
-  end
-  if map[math.floor(posx)][math.floor(posy + diry * movespeed)] < 1 then
-   posy = posy + diry * movespeed
-  end
+  moveup(movespeed)
  elseif love.keyboard.isDown("s") then
-  if map[math.floor(posx - dirx * movespeed)][math.floor(posy)] < 1 then
-   posx = posx - dirx * movespeed
-  end
-  if map[math.floor(posx)][math.floor(posy - diry * movespeed)] < 1 then
-   posy = posy - diry * movespeed
-  end
+  movedown(movespeed)
  end
 
  if love.keyboard.isDown("a") then
-  olddirx = dirx
-  dirx = dirx * math.cos(rotspeed) - diry * math.sin(rotspeed)
-  diry = olddirx * math.sin(rotspeed) + diry * math.cos(rotspeed)
-  oldplanex = planex
-  planex = planex * math.cos(rotspeed) - planey * math.sin(rotspeed)
-  planey = oldplanex * math.sin(rotspeed) + planey * math.cos(rotspeed)
+  rotspeed = math.pi/2
+  rotateleft(rotspeed)
+  moveup(movespeed)
+  rotateleft(-rotspeed)
  elseif love.keyboard.isDown("d") then
-  olddirx = dirx
-  dirx = dirx * math.cos(-rotspeed) - diry * math.sin(-rotspeed)
-  diry = olddirx * math.sin(-rotspeed) + diry * math.cos(-rotspeed)
-  oldplanex = planex
-  planex = planex * math.cos(-rotspeed) - planey * math.sin(-rotspeed)
-  planey = oldplanex * math.sin(-rotspeed) + planey * math.cos(-rotspeed)
+  rotspeed = math.pi/2
+  rotateright(rotspeed)
+  moveup(movespeed)
+  rotateright(-rotspeed)
+ end
+
+ if mousedx > 0.01 then
+  rotateright(mousedx/5 * dt)
+ elseif mousedx < 0.01 then
+  rotateright(mousedx/5 * dt)
  end
 end
 
@@ -109,7 +106,7 @@ function love.draw()
   end
 
   if fullscreen then
-    love.graphics.scale(scale)
+    love.graphics.scale(xscale, yscale)
   end
 
   local cnvs = draw3d()
@@ -117,12 +114,18 @@ function love.draw()
   love.graphics.draw(screentodraw)
   cnvs = drawsprites(1)
 
-  -- love.graphics.setColor(255,0,0)
-  -- love.graphics.rectangle("fill", screenw, 0, w-screenw, h )
-  
+  love.graphics.print(planey, 0, 1)
+  if love.keyboard.isDown("x") then
+    planey = planey - 0.1
+  end
+  if love.keyboard.isDown("c") then
+    planey = planey + 0.1
+  end
+
   -- I REALLY WANT TO REMOVE THIS
   collectgarbage('collect')
   firstrun = false
+  mousedx = 0
 end
 
 function drawfirstrun()
@@ -172,4 +175,44 @@ function drawfirstrun()
     love.graphics.draw(spriteimage, 0, 0, 0, sprite.scale)
   end
   love.graphics.rectangle("fill", 0, 0, screenw, h)
+end
+
+function moveup(movespeed)
+  if map[math.floor(posx + dirx * movespeed)][math.floor(posy)] < 1 then
+   posx = posx + dirx * movespeed
+  end
+  if map[math.floor(posx)][math.floor(posy + diry * movespeed)] < 1 then
+   posy = posy + diry * movespeed
+  end
+end
+
+function movedown(movespeed)
+  if map[math.floor(posx - dirx * movespeed)][math.floor(posy)] < 1 then
+   posx = posx - dirx * movespeed
+  end
+  if map[math.floor(posx)][math.floor(posy - diry * movespeed)] < 1 then
+   posy = posy - diry * movespeed
+  end
+end
+
+function rotateleft(rotspeed)
+  olddirx = dirx
+  dirx = dirx * math.cos(rotspeed) - diry * math.sin(rotspeed)
+  diry = olddirx * math.sin(rotspeed) + diry * math.cos(rotspeed)
+  oldplanex = planex
+  planex = planex * math.cos(rotspeed) - planey * math.sin(rotspeed)
+  planey = oldplanex * math.sin(rotspeed) + planey * math.cos(rotspeed)
+end
+
+function rotateright(rotspeed)
+  olddirx = dirx
+  dirx = dirx * math.cos(-rotspeed) - diry * math.sin(-rotspeed)
+  diry = olddirx * math.sin(-rotspeed) + diry * math.cos(-rotspeed)
+  oldplanex = planex
+  planex = planex * math.cos(-rotspeed) - planey * math.sin(-rotspeed)
+  planey = oldplanex * math.sin(-rotspeed) + planey * math.cos(-rotspeed)
+end
+
+function love.mousemoved(x, y, dx, dy)
+  mousedx = dx
 end

@@ -134,6 +134,10 @@ function draw3d()
       fade = darkness_scale*perpwalldist*perpwalldist/4
     end
 
+    if side == 0 then
+      fade = fade * 2
+    end
+
     texx = math.floor(texx)
     if texx > 1 and x < w then
       for y=drawstart,drawend do
@@ -153,12 +157,6 @@ function draw3d()
             local rgba = windowsprite[texx - windowx + 1][texy-windowy]
             cnvs:setPixel(x, y, rgba[1], rgba[2], rgba[3], rgba[4]/fade)
           end
-          -- love.graphics.print(windowsprite.getHeight().." - a", 0, 10)
-          -- love.graphics.print(windowsprite.getWidth().." - a", 0, 20)
-          -- love.graphics.print(texx.." - a", 0, 30)
-          -- love.graphics.print(texy.." - a", 0, 40)
-          -- local r, g, b, a = windowsprite:getPixel(texx-40, texy-40)
-          -- cnvs:setPixel(x, y, r, g, b, a/fade)
         end
       end
     end
