@@ -148,12 +148,11 @@ function draw3d()
         -- Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
         local texy = math.floor(texpos)
         texpos = texpos + step
-        if texx > imagewidth or texy > imageheight then
-          break
+        
+        if texy < imageheight then
+          local rgba = wallsprite[texx][texy]
+          cnvs:setPixel(x, y, rgba[1], rgba[2], rgba[3], rgba[4]/fade)
         end
-
-        local rgba = wallsprite[texx][texy]
-        cnvs:setPixel(x, y, rgba[1], rgba[2], rgba[3], rgba[4]/fade)
 
         if windowdraw then
           if texy > windowy and texy < windowheight then

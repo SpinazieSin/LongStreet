@@ -48,6 +48,9 @@ function load_variables()
 
     -- canvas offsets
     canvas_y_offset = 0--(screen_height/6)*(h/screen_height)--h/(screen_height/h)
+
+    -- the proportion of screen space that the black/white bar uses
+    black_bar_limit = 1/8
 end
 
 function reloadscreen()

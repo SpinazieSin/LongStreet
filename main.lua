@@ -10,6 +10,8 @@ function love.load()
     love.mouse.setRelativeMode( true )
 
     mousedx = 0
+    black_bar = 0
+    black_bar_show = false
 
     success = love.window.setMode( screenw, h, {fullscreen=fullscreen} )
 
@@ -29,7 +31,8 @@ function love.load()
     windowimages = {
       love.image.newImageData("assets/decorations/window-1.png"),
       love.image.newImageData("assets/decorations/window-2.png"),
-      love.image.newImageData("assets/decorations/Airco.png")
+      love.image.newImageData("assets/decorations/airco.png"),
+      love.image.newImageData("assets/gate.png")
     }
 
     -- arguments:
@@ -44,8 +47,8 @@ function love.load()
       {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 1, side = -1},
       {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 2, side = -1},
       {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 1, side = -1},
-      {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 2, side = -1},
       {xoffset = 150+math.floor(math.random(150)), yoffset = 50+math.floor(math.random(150)), image = 3, side = -1},
+      {xoffset = 50, yoffset = 46, image = 4, side = -1}
     }
 
     windows = {}
@@ -89,6 +92,12 @@ function love.update(dt)
   movedown(movespeed)
  end
 
+ if love.keyboard.isDown("q") then
+  rotateleft(rotspeed)
+ elseif love.keyboard.isDown("e") then
+  rotateright(rotspeed)
+ end
+
  if love.keyboard.isDown("a") then
   rotspeed = math.pi/2
   rotateleft(rotspeed)
@@ -99,12 +108,6 @@ function love.update(dt)
   rotateright(rotspeed)
   moveup(movespeed)
   rotateright(-rotspeed)
- end
-
- if love.keyboard.isDown("q") then
-  rotateleft(rotspeed)
- elseif love.keyboard.isDown("e") then
-  rotateright(rotspeed)
  end
 
  if mousedx > 0.01 then
@@ -162,12 +165,21 @@ function love.draw()
   love.graphics.draw(screentodraw, 0, canvas_y_offset)
   cnvs = drawsprites(1)
 
-  love.graphics.print(planey, 0, 1)
   if love.keyboard.isDown("x") then
     planey = planey - 0.1
   end
   if love.keyboard.isDown("c") then
     planey = planey + 0.1
+  end
+
+  if love.keyboard.isDown("f") then
+    if black_bar < h*black_bar_limit then
+      black_bar = black_bar + h/150
+    end
+    love.graphics.rectangle("fill", 0, 0, screen_width, black_bar)
+    love.graphics.rectangle("fill", 0, h-black_bar, screen_width, h)
+  else
+    black_bar = 0
   end
 
   -- I REALLY WANT TO REMOVE THIS
@@ -199,6 +211,7 @@ function drawfirstrun()
     table.insert(walls, wallsprite)
   end
 
+  local windowindex = 0
   for number=1,#windowpos do
     local window = windowimages[windowpos[number].image]:clone()
     windowpos[number].width = window:getWidth()-1 
@@ -211,7 +224,11 @@ function drawfirstrun()
         windowsprite[wallx][wally] = {r, g, b, a}
       end
     end
-    table.insert(windows, windowsprite)
+
+    if windowindex < windowpos[number].image then
+      windowindex = windowpos[number].image
+      table.insert(windows, windowsprite)
+    end
   end
 
   for number=1,#sprites do
