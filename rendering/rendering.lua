@@ -144,7 +144,6 @@ function draw3d()
     texx = math.floor(texx)
     if texx > 1 and x < w then
       for y=drawstart,drawend do
-
         -- Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
         local texy = math.floor(texpos)
         texpos = texpos + step
@@ -152,6 +151,9 @@ function draw3d()
         if texy < imageheight then
           local rgba = wallsprite[texx][texy]
           cnvs:setPixel(x, y, rgba[1], rgba[2], rgba[3], rgba[4]/fade)
+          if y > lineheight then
+            cnvs:setPixel(x, y-lineheight, rgba[1], rgba[2], rgba[3], rgba[4]/fade)
+          end
         end
 
         if windowdraw then
@@ -162,6 +164,22 @@ function draw3d()
         end
       end
     end
+
+    -- local texpos = (drawstart - h / 2 + lineheight / 2) * step + 1.1
+    -- drawstart = -lineheight * 1.5 + h / 2
+    -- drawend = -lineheight / 2 + h / 2
+
+    -- if texx > 1 and x < w then
+    --   for y=drawstart,drawend do
+    --     -- Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
+    --     local texy = math.floor(texpos)
+    --     texpos = texpos + step
+    --     if y > 1 and texy < imageheight then
+    --       local rgba = wallsprite[texx][texy]
+    --       cnvs:setPixel(x, y, rgba[1], rgba[2], rgba[3], rgba[4]/fade)
+    --     end
+    --   end
+    -- end
     -- DRAWBUFFER
     -- love.graphics.line(x, 0, x, drawstart)
     -- love.graphics.line(x, drawstart, x, drawend)

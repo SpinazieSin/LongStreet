@@ -20,14 +20,21 @@ function love.load()
     canvas:setFilter("nearest", "nearest")
     canvas = canvas:newImageData()
  
-    -- load images
+    -- load floors
+    floors = {}
+    floorimages = {
+      love.image.newImageData("assets/floors/brick_road.png")
+    }
+
+    -- load walls
+    walls = {}
     wallimages = {
       love.image.newImageData("assets/walls/Bricks-2.jpg"),
       love.image.newImageData("assets/example.png")
     }
 
-    walls = {}
-
+    -- load windows
+    windows = {}
     windowimages = {
       love.image.newImageData("assets/decorations/window-1.png"),
       love.image.newImageData("assets/decorations/window-2.png"),
@@ -51,7 +58,6 @@ function love.load()
       {xoffset = 50, yoffset = 46, image = 4, side = -1}
     }
 
-    windows = {}
 
     spritesheet = {
       love.image.newImageData("assets/lantern_pole.png"),
@@ -211,6 +217,19 @@ function drawfirstrun()
     table.insert(walls, wallsprite)
   end
 
+  for number=1,#floorimages do
+    local floorimage = floorimages[number]:clone()
+    local floorsprite = {}
+    for floorx=1,floorimage:getWidth()-1 do
+      table.insert(floorsprite, {})
+      for floory=1,floorimage:getHeight()-1 do
+        local r, g, b, a = floorimage:getPixel(floorx, floory)
+        floorsprite[floorx][floory] = {r, g, b, a}
+      end
+    end
+    table.insert(floors, floorsprite)
+  end
+
   local windowindex = 0
   for number=1,#windowpos do
     local window = windowimages[windowpos[number].image]:clone()
@@ -239,7 +258,7 @@ function drawfirstrun()
     spriteimage:replacePixels(localspritedata)
     love.graphics.draw(spriteimage, 0, 0, 0, sprite.scale)
   end
-  love.graphics.rectangle("fill", 0, 0, screenw, h)
+  -- love.graphics.rectangle("fill", 0, 0, screen_width, screen_height)
 end
 
 function moveup(movespeed)

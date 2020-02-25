@@ -5,7 +5,7 @@ function load_variables()
     posx, posy = 7.5, 12.5
 
     -- player speed
-    runspeed, turnspeed = 3, 3
+    runspeed, turnspeed = 2, 2
     
     -- turn the lights off
     darkness = true
@@ -25,7 +25,7 @@ function load_variables()
     texheight = 512
 
     -- field of view in percentage scaling
-    local fieldofview = 100
+    local fieldofview = 80
     dirx = -100/fieldofview
 
     -- don't touch
