@@ -2,25 +2,24 @@
 local floor = math.floor
 local abs = math.abs
 function draw3d()
+ local drawend = h/2
+ local wallx = 0
+ local side = 0
+
+ -- step direction
+ local stepx = 0
+ local stepy = 0
  for x=1,w do
+  local wallhit = false
   local camerax = (2 * x) / w - 1
-  
   local raydirx = dirx + planex * camerax
   local raydiry = diry + planey * camerax
-
-  local mapx = math.floor(posx)
-  local mapy = math.floor(posy)
-
   local deltadistx = math.abs(1 / raydirx)
   local deltadisty = math.abs(1 / raydiry)
-
-  -- step direction
-  local stepx = 0
-  local stepy = 0
-
-  local wallhit = false
-  local side = 0
-
+ 
+   local mapx = math.floor(posx)
+   local mapy = math.floor(posy)
+   
   if raydirx < 0 then
    stepx = -1
    sidedistx = (posx - mapx) * deltadistx
@@ -61,7 +60,7 @@ function draw3d()
     spritehits[mapx][mapy] = true
    end
    
-   if count > 15 then
+   if count > 50 then
     wallhit = false
     break
    end
@@ -72,7 +71,7 @@ function draw3d()
    local wallsprite = walls[wallnumber]
    local imageheight = #wallsprite
    local imagewidth = #wallsprite[1]
-   local perpwalldist = 0
+   perpwalldist = 0
    
    if side == 0 then
     perpwalldist = (mapx - posx + (1 - stepx) / 2) / raydirx
@@ -90,11 +89,8 @@ function draw3d()
     drawend = h - 1
    end
 
-    --texturing calculations
-    -- texNum = worldMap[mapX][mapY] - 1 --1 subtracted from it so that texture 0 can be used!
-
     --calculate value of wallX
-    local wallx = 0 --where exactly the wall was hit
+     --where exactly the wall was hit
     if (side == 0) then
       wallx = posy + perpwalldist * raydiry
     else
@@ -174,28 +170,99 @@ function draw3d()
         end
       end
     end
-
-    -- local texpos = (drawstart - h / 2 + lineheight / 2) * step + 1.1
-    -- drawstart = -lineheight * 1.5 + h / 2
-    -- drawend = -lineheight / 2 + h / 2
-
-    -- if texx > 1 and x < w then
-    --   for y=drawstart,drawend do
-    --     -- Cast the texture coordinate to integer, and mask with (texHeight - 1) in case of overflow
-    --     local texy = math.floor(texpos)
-    --     texpos = texpos + step
-    --     if y > 1 and texy < imageheight then
-    --       local rgba = wallsprite[texx][texy]
-    --       cnvs:setPixel(x, y, rgba[1], rgba[2], rgba[3], rgba[4]/fade)
-    --     end
-    --   end
-    -- end
     -- DRAWBUFFER
     -- love.graphics.line(x, 0, x, drawstart)
     -- love.graphics.line(x, drawstart, x, drawend)
     -- love.graphics.line(x, drawend, x, h)
+
   end
- end
+  if floorcasting then
+    --FLOOR CASTING (vertical version, directly after drawing the vertical wall stripe for the current x)
+    local floorxwall, floorywall = 0, 0 --x, y position of the floor texel at the bottom of the wall
+    if side == 0 and raydirx > 0 then
+      floorxwall = mapx
+      floorywall = mapy + wallx
+    elseif side == 0 and raydirx < 0 then
+      floorxwall = mapx + 1.0
+      floorywall = mapy + wallx
+    elseif side == 1 and raydiry > 0 then
+      floorxwall = mapx + wallx
+      floorywall = mapy
+    else
+      floorxwall = mapx + wallx
+      floorywall = mapy + 1.0
+    end
+
+    local distwall = perpwalldist
+    local distplayer = 0.0
+
+    if (drawend < 0) then
+      drawend = h --becomes < 0 when the integer overflows
+    end
+
+    --draw the floor from drawEnd to the bottom of the screen
+    for y = drawend + 1, h-1 do
+        local currentdist = h / (2.0 * y - h) --you could make a small lookup table for this instead
+        local weight = (currentdist - distplayer) / (distwall - distplayer)
+
+        local currentfloorx = weight * floorxwall + (1.0 - weight) * posx
+        local currentfloory = weight * floorywall + (1.0 - weight) * posy
+
+        local floortexx = math.floor(currentfloorx * texwidth) % texwidth
+        local floortexy = math.floor(currentfloory * texheight) % texheight
+        local rgba = floors[1][floortexx+1][floortexy+1]
+        cnvs:setPixel(x-1, y, rgba[1], rgba[2], rgba[3], rgba[4]/(darkness_scale * currentdist^2))
+    end
+   end
+  end
+  -- -- rayDir for leftmost ray (x = 0) and rightmost ray (x = w)
+  -- local raydirx0 = dirx - planex
+  -- local raydiryy = diry - planey
+  -- local raydirx1 = dirx + planex
+  -- local raydiry1 = dirx + planey
+
+  -- -- Vertical position of the camera.
+  -- local posz = h / 2
+  -- --FLOOR CASTING
+  -- for y=1,h-1 do
+  --   -- Current y position compared to the center of the screen (the horizon)
+  --   local p = y - posz
+
+  --   -- Horizontal distance from the camera to the floor for the current row.
+  --   -- 0.5 is the z position exactly in the middle between floor and ceiling.
+  --   local rowdistance = posz / p
+
+  --   -- calculate the real world step vector we have to add for each x (parallel to camera plane)
+  --   -- adding step by step avoids multiplications with a weight in the inner loop
+  --   local floorstepx = rowdistance * (raydirx1 - raydirx0) / w
+  --   local floorstepy = rowdistance * (raydiry1 - raydiry0) / w
+  --   -- real world coordinates of the leftmost column. This will be updated as we step to the right.
+  --   local floorx = posx + rowdistance * raydirx0
+  --   local floory = posy + rowdistance * raydiry0
+
+  --   for x=1,w-1 do
+  --     -- the cell coord is simply got from the integer parts of floorX and floorY
+  --     local cellx = math.floor(floorx)
+  --     local celly = math.floor(floory)
+
+  --     -- get the texture coordinate from the fractional part
+  --     local tx = math.floor(texwidth * (floorx - cellx)) + 1
+  --     local ty = math.floor(texheight * (floory - celly)) + 1
+  --     print(cellx)
+  --     print(floorx)
+  --     local floorx = floorx + floorstepx
+  --     local floory = floory + floorstepy
+
+  --     -- print(x)
+  --     -- print(y)
+  --     print(tx)
+  --     print(x)
+  --     print(y)
+  --     print("-")
+  --     local rgba = floors[1][tx][ty]
+  --     canvas:setPixel(x, y, rgba[1], rgba[2], rgba[3], rgba[4]/(y/h))
+  --   end
+  -- end
 end
 
 

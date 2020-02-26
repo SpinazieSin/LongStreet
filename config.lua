@@ -1,5 +1,8 @@
 
 function load_variables()
+    -- turn the floor on
+    floorcasting = true
+
     -- player location on the map
     -- x is height and y is width because of some stupid warping 
     posx, posy = 7.5, 12.5
@@ -21,11 +24,11 @@ function load_variables()
     screenh = h
     
     -- default texture size 
-    texwidth = 512
-    texheight = 512
+    texwidth = 511
+    texheight = 511
 
     -- field of view in percentage scaling
-    local fieldofview = 80
+    local fieldofview = 100
     dirx = -100/fieldofview
 
     -- don't touch

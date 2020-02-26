@@ -29,7 +29,7 @@ function love.load()
     -- load walls
     walls = {}
     wallimages = {
-      love.image.newImageData("assets/walls/Bricks-2.jpg"),
+      love.image.newImageData("assets/walls/bricks1.png"),
       love.image.newImageData("assets/example.png")
     }
 
@@ -191,7 +191,7 @@ function love.draw()
   end
 
   mousedx = 0
-  love.graphics.print("FPS: "..math.floor(1/(love.timer.getTime() - time)))
+  love.graphics.print("Press backspace to toggle floor! FPS: "..math.floor(1/(love.timer.getTime() - time)))
 end
 
 function drawfirstrun()
@@ -209,7 +209,7 @@ function drawfirstrun()
     local wallsprite = {}
     for wallx=1,wallimage:getWidth()-1 do
       table.insert(wallsprite, {})
-      for wally=1,wallimage:getHeight()-1 do
+      for wally=1,wallimage:getHeight() -1 do
         local r, g, b, a = wallimage:getPixel(wallx, wally)
         wallsprite[wallx][wally] = {r, g, b, a}
       end
@@ -300,3 +300,16 @@ end
 function love.mousemoved(x, y, dx, dy)
   mousedx = dx
 end
+
+function love.keypressed(key)
+  if key == "escape" then
+    love.event.quit()
+  end
+  if key == "backspace" then
+   if floorcasting then
+     floorcasting = false
+   else
+     floorcasting = true
+   end
+  end
+ end
