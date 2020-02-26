@@ -1,8 +1,8 @@
 
+local floor = math.floor
+local abs = math.abs
 function draw3d()
- local cnvs = canvas:clone()
-
- for x=0,w do
+ for x=1,w do
   local camerax = (2 * x) / w - 1
   
   local raydirx = dirx + planex * camerax
@@ -67,7 +67,7 @@ function draw3d()
    end
    count = count + 1
   end
-  
+
   if wallhit then
    local wallsprite = walls[wallnumber]
    local imageheight = #wallsprite
@@ -141,6 +141,13 @@ function draw3d()
       fade = fade * 2
     end
 
+    -- for y=1,drawstart do
+    --   canvas.setPixel(x, y, 0, 0, 0, 0)
+    -- end
+    -- for y=drawend,h do
+    --   canvas.setPixel(x, y, 0, 0, 0, 0)
+    -- end
+
     texx = math.floor(texx)
     if texx > 1 and x < w then
       for y=drawstart,drawend do
@@ -153,6 +160,9 @@ function draw3d()
           cnvs:setPixel(x, y, rgba[1], rgba[2], rgba[3], rgba[4]/fade)
           if y > lineheight then
             cnvs:setPixel(x, y-lineheight, rgba[1], rgba[2], rgba[3], rgba[4]/fade)
+          end
+          if y + lineheight < h then
+            -- cnvs:setPixel(x, y+lineheight, rgba[1], rgba[2], rgba[3], rgba[4]/fade)
           end
         end
 
@@ -186,7 +196,6 @@ function draw3d()
     -- love.graphics.line(x, drawend, x, h)
   end
  end
- return cnvs
 end
 
 

@@ -19,7 +19,7 @@ function love.load()
     canvas = love.graphics.newCanvas(w, h)
     canvas:setFilter("nearest", "nearest")
     canvas = canvas:newImageData()
- 
+
     -- load floors
     floors = {}
     floorimages = {
@@ -82,12 +82,15 @@ function love.load()
 
     spritehits = {{}}
 
-    firstrun = true
+    drawfirstrun()
 end
  
 -- Increase the size of the rectangle every frame.
 function love.update(dt)
- spritehits = {{}}
+ cnvs = canvas:clone()
+ for i=1,#spritehits do
+    table.remove(spritehits[i])
+ end
 
  local movespeed = runspeed * dt
  local rotspeed = turnspeed * dt
@@ -156,20 +159,19 @@ function love.update(dt)
 end
 
 function love.draw()
+  local time = love.timer.getTime()
   love.graphics.clear()
-
-  if firstrun then
-    drawfirstrun()
-  end
 
   if fullscreen then
     love.graphics.scale(xscale, yscale)
   end
 
-  local cnvs = draw3d()
+  draw3d()
   local screentodraw = love.graphics.newImage(cnvs)
   love.graphics.draw(screentodraw, 0, canvas_y_offset)
-  cnvs = drawsprites(1)
+  drawsprites(1)
+  cnvs:release()
+  screentodraw:release()
 
   if love.keyboard.isDown("x") then
     planey = planey - 0.1
@@ -188,10 +190,8 @@ function love.draw()
     black_bar = 0
   end
 
-  -- I REALLY WANT TO REMOVE THIS
-  collectgarbage('collect')
-  firstrun = false
   mousedx = 0
+  love.graphics.print("FPS: "..math.floor(1/(love.timer.getTime() - time)))
 end
 
 function drawfirstrun()

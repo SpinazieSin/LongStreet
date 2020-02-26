@@ -64,7 +64,10 @@ function reloadscreen()
     -- dirx = -100/fieldofview
     -- diry = 0
     -- load canvas
+    canvas:release()
+    cnvs:release()
     canvas = love.graphics.newCanvas(w, h)
     canvas:setFilter("nearest", "nearest")
     canvas = canvas:newImageData()
+    cnvs = canvas:clone()
 end
