@@ -3,6 +3,8 @@ require("maps.windows")
 require("maps.floor")
 require("rendering.rendering")
 require("config")
+require("units.base")
+require("units.characters")
 
 function love.load()
     load_variables()
@@ -23,7 +25,8 @@ function love.load()
     -- load floors
     floors = {}
     floorimages = {
-      love.image.newImageData("assets/floors/brick_road.png")
+      love.image.newImageData("assets/floors/brick_road.png"),
+      love.image.newImageData("assets/floors/pavement.png")
     }
 
     -- load walls
@@ -61,26 +64,43 @@ function love.load()
 
     spritesheet = {
       love.image.newImageData("assets/lantern_pole.png"),
-      love.image.newImageData("assets/example.png")
+      love.image.newImageData("assets/example.png"),
+      love.image.newImageData("assets/bin.png"),
+    }
+
+    spriteimages = {
+      {xoffset = 0, yoffset = -300, scale = 1}, -- pole
+      {xoffset = 0, yoffset = 0, scale = 1}, -- example
+      {xoffset = 0, yoffset = 0, scale = 0.5} -- bin
     }
 
     sprites = {
-      {x = 5, y = 5, spriteimage = 1, xoffset = 0, yoffset = -300, scale = 1}
+      {x = 5, y = 5, spriteimage = 1, character = 1},
+      {x = 10, y = 20, spriteimage = 3, character = 2}
     }
 
-    spriteims = {
-      love.graphics.newImage(spritesheet[1])
-    }
-
-    for i=1,#sprites do
-      map[sprites[i].x][sprites[i].y] = 9
+    spriteims = {}
+    for i=1,#spritesheet do
+      table.insert(spriteims, love.graphics.newImage(spritesheet[i]))
     end
 
+    units = {}
+    -- for i=1,#sprites do
+    --   map[sprites[i].x][sprites[i].y] = 9
+    -- end
+
     for i=1,#sprites do
+      local sprite = sprites[i]
       local loadsprite = spritesheet[sprites[i].spriteimage]:clone()
+      add_unit(sprite.x, sprite.y, i, sprite.spriteimage, sprite.character)
     end
 
     spritehits = {{}}
+
+    dialogue = {}
+    dialogue_type = 0
+    dialogue_print = ""
+    dpress = false
 
     drawfirstrun()
 end
@@ -92,31 +112,38 @@ function love.update(dt)
     table.remove(spritehits[i])
  end
 
+ local rpress = love.keyboard.isDown("r")
+ if rpress and not(dpress) then
+  dpress = true
+ elseif dpress and not(rpress) then
+  dpress = false
+ end
  local movespeed = runspeed * dt
  local rotspeed = turnspeed * dt
 
- if love.keyboard.isDown("w") then
-  moveup(movespeed)
- elseif love.keyboard.isDown("s") then
-  movedown(movespeed)
- end
-
- if love.keyboard.isDown("q") then
-  rotateleft(rotspeed)
- elseif love.keyboard.isDown("e") then
-  rotateright(rotspeed)
- end
-
- if love.keyboard.isDown("a") then
-  rotspeed = math.pi/2
-  rotateleft(rotspeed)
-  moveup(movespeed)
-  rotateleft(-rotspeed)
- elseif love.keyboard.isDown("d") then
-  rotspeed = math.pi/2
-  rotateright(rotspeed)
-  moveup(movespeed)
-  rotateright(-rotspeed)
+ if #dialogue < 1 then
+   if love.keyboard.isDown("w") then
+    moveup(movespeed)
+   elseif love.keyboard.isDown("s") then
+    movedown(movespeed)
+   end
+   if love.keyboard.isDown("q") then
+    rotateleft(rotspeed)
+   elseif love.keyboard.isDown("e") then
+    rotateright(rotspeed)
+   end
+   if love.keyboard.isDown("a") then
+    rotspeed = math.pi/2
+    rotateleft(rotspeed)
+    moveup(movespeed)
+    rotateleft(-rotspeed)
+   elseif love.keyboard.isDown("d") then
+    rotspeed = math.pi/2
+    rotateright(rotspeed)
+    moveup(movespeed)
+    rotateright(-rotspeed)
+   end
+ else
  end
 
  if mousedx > 0.01 then
@@ -154,7 +181,11 @@ function love.update(dt)
   planex, planey = 0, xscale/yscale
   local fieldofview = 100
   dirx = -100/fieldofview
-  diry = 0  
+  diry = 0
+ end
+ 
+ for i=1,#units do
+  units[i]:update()
  end
 end
 
@@ -173,6 +204,10 @@ function love.draw()
   cnvs:release()
   screentodraw:release()
 
+  for i=1,#units do
+   units[i]:draw()
+  end
+
   if love.keyboard.isDown("x") then
     planey = planey - 0.1
   end
@@ -180,18 +215,27 @@ function love.draw()
     planey = planey + 0.1
   end
 
-  if love.keyboard.isDown("f") then
-    if black_bar < h*black_bar_limit then
-      black_bar = black_bar + h/150
-    end
+  if #dialogue > 0 then
+    -- draw black bars
     love.graphics.rectangle("fill", 0, 0, screen_width, black_bar)
     love.graphics.rectangle("fill", 0, h-black_bar, screen_width, h)
+    -- increase black bar size
+    if black_bar < h*black_bar_limit then
+      black_bar = black_bar + (yscale * h/1000)
+    else
+      -- draw dialogue
+      love.graphics.print(dialogue[1], w/10, h/2)
+      -- skip dialogue
+      if dpress then
+        table.remove(dialogue, 1)
+      end
+    end
   else
     black_bar = 0
   end
 
   mousedx = 0
-  love.graphics.print("Press backspace to toggle floor! FPS: "..math.floor(1/(love.timer.getTime() - time)))
+  love.graphics.print("Backspace toggles floor. FPS: "..math.floor(1/(love.timer.getTime() - time)))
 end
 
 function drawfirstrun()
@@ -250,14 +294,14 @@ function drawfirstrun()
     end
   end
 
-  for number=1,#sprites do
-    local sprite = sprites[number]
-    local localspritedata = spritesheet[sprite.spriteimage]:clone()
-    localspritedata:mapPixel(function(x, y, r, g, b, a) return r, g, b, a end)
-    local spriteimage = spriteims[sprite.spriteimage]
-    spriteimage:replacePixels(localspritedata)
-    love.graphics.draw(spriteimage, 0, 0, 0, sprite.scale)
-  end
+  -- for number=1,#sprites do
+  --   local sprite = sprites[number]
+  --   local localspritedata = spritesheet[sprite.spriteimage]:clone()
+  --   localspritedata:mapPixel(function(x, y, r, g, b, a) return r, g, b, a end)
+  --   local spriteimage = spriteims[sprite.spriteimage]
+  --   spriteimage:replacePixels(localspritedata)
+  --   love.graphics.draw(spriteimage, 0, 0, 0, sprite.scale)
+  -- end
   -- love.graphics.rectangle("fill", 0, 0, screen_width, screen_height)
 end
 
@@ -313,3 +357,11 @@ function love.keypressed(key)
    end
   end
  end
+
+function love.mousepressed(x, y, button, istouch)
+   if button == 1 then -- Versions prior to 0.10.0 use the MouseConstant 'l'
+     return true
+   else
+     return false
+   end
+end

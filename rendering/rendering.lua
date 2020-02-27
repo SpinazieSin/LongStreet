@@ -177,6 +177,7 @@ function draw3d()
 
   end
   if floorcasting then
+    local floorsprite = floors[1]
     --FLOOR CASTING (vertical version, directly after drawing the vertical wall stripe for the current x)
     local floorxwall, floorywall = 0, 0 --x, y position of the floor texel at the bottom of the wall
     if side == 0 and raydirx > 0 then
@@ -203,15 +204,18 @@ function draw3d()
     --draw the floor from drawEnd to the bottom of the screen
     for y = drawend + 1, h-1 do
         local currentdist = h / (2.0 * y - h) --you could make a small lookup table for this instead
-        local weight = (currentdist - distplayer) / (distwall - distplayer)
+        if currentdist < 3.5 then
+          local fade = (darkness_scale * currentdist^3)
+          local weight = (currentdist - distplayer) / (distwall - distplayer)
 
-        local currentfloorx = weight * floorxwall + (1.0 - weight) * posx
-        local currentfloory = weight * floorywall + (1.0 - weight) * posy
+          local currentfloorx = weight * floorxwall + (1.0 - weight) * posx
+          local currentfloory = weight * floorywall + (1.0 - weight) * posy
 
-        local floortexx = math.floor(currentfloorx * texwidth) % texwidth
-        local floortexy = math.floor(currentfloory * texheight) % texheight
-        local rgba = floors[1][floortexx+1][floortexy+1]
-        cnvs:setPixel(x-1, y, rgba[1], rgba[2], rgba[3], rgba[4]/(darkness_scale * currentdist^2))
+          local floortexx = math.floor(currentfloorx * texwidth) % texwidth
+          local floortexy = math.floor(currentfloory * texheight) % texheight
+          local rgba = floorsprite[floortexx+1][floortexy+1]
+          cnvs:setPixel(x-1, y, rgba[1], rgba[2], rgba[3], rgba[4]/fade)
+        end
     end
    end
   end
@@ -266,13 +270,14 @@ function draw3d()
 end
 
 
-function drawsprites(number)
+function drawsprites(spritex, spritey, number)
 
-  local sprite = sprites[number]
-  if spritehits[sprite.x] ~= nil and spritehits[sprite.x][sprite.y] ~= nil then
+  local sprite = spriteimages[number]
 
-  local spritex = sprite.x - posx + 0.5
-  local spritey = sprite.y - posy + 0.5
+  if spritehits[spritex] ~= nil and spritehits[spritex][spritey] ~= nil then
+
+  local spritex = spritex - posx + 0.5
+  local spritey = spritey - posy + 0.5
 
   local invdet = 1.0 / (planex * diry - dirx * planey) --required for correct matrix multiplication
 
@@ -285,7 +290,7 @@ function drawsprites(number)
     return
   end
 
-  local localspritedata = spritesheet[sprite.spriteimage]:clone()
+  local localspritedata = spritesheet[number]:clone()
 
     --transform sprite with the inverse camera matrix
     -- [ planeX   dirX ] -1                                       [ dirY      -dirX ]
@@ -331,8 +336,9 @@ function drawsprites(number)
   end
 
   localspritedata:mapPixel(function(x, y, r, g, b, a) return r/fade, g/fade, b/fade, a end)
-  local spriteimage = spriteims[sprite.spriteimage]
+  local spriteimage = spriteims[number]
   spriteimage:replacePixels(localspritedata)
   love.graphics.draw(spriteimage, spritescreenx + sprite.xoffset, h/2 + sprite.yoffset/transformy + canvas_y_offset, 0, sprite.scale/transformy)
+  -- localspritedata:release()
   end
 end

@@ -1,7 +1,7 @@
 
 function load_variables()
     -- turn the floor on
-    floorcasting = true
+    floorcasting = false
 
     -- player location on the map
     -- x is height and y is width because of some stupid warping 
