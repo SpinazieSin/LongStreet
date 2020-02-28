@@ -338,7 +338,7 @@ function drawsprites(spritex, spritey, number)
   localspritedata:mapPixel(function(x, y, r, g, b, a) return r/fade, g/fade, b/fade, a end)
   local spriteimage = spriteims[number]
   spriteimage:replacePixels(localspritedata)
-  love.graphics.draw(spriteimage, spritescreenx + sprite.xoffset, h/2 + sprite.yoffset/transformy + canvas_y_offset, 0, sprite.scale/transformy)
+  love.graphics.draw(spriteimage, spritescreenx + sprite.xoffset/transformy, h/2 + sprite.yoffset/transformy + canvas_y_offset, 0, sprite.scale/transformy)
   -- localspritedata:release()
   end
 end

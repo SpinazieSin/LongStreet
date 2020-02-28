@@ -22,9 +22,11 @@ function add_unit(x, y, index, spritenumber, character)
     update = function(self)
       map[self.x][self.y] = 9
       if self.speaks then
-        if dpress and #dialogue < 1 then
+        if rpress and #dialogue < 1 then
           if math.sqrt((self.x - posx)^2 + (self.y - posy)^2) < 3 then
-            table.insert(dialogue, self.chardialogue[1][1])
+            for i=1,#self.chardialogue[1] do
+              table.insert(dialogue, self.chardialogue[1][i])
+            end
           end
         end
       end
